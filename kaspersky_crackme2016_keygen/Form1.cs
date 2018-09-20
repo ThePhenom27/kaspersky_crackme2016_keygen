@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 
 namespace kaspersky_crackme2016_keygen
@@ -72,7 +73,7 @@ namespace kaspersky_crackme2016_keygen
 		}
 
 
-		string[] hardcoded_hashes = {
+		string[] HardcodedHashes = {
 				"CD64341F68CEDE586C9693EDC505F378",
 				"05D34B65E96F1D39CCB584C00372D8A3",
 				"A15B7EBAAD915326241DFB5B1BBC546F",
@@ -97,7 +98,7 @@ namespace kaspersky_crackme2016_keygen
 			for (int i = 0; i < 5; i++)
 			{
 				byte[] three_byte_hash = md5.ComputeHash(xor_encryption_result, i * 3, 3);
-				byte[] current_hard_coded_hash = StringToByteArray(hardcoded_hashes[i]);
+				byte[] current_hard_coded_hash = StringToByteArray(HardcodedHashes[i]);
 				if (!three_byte_hash.SequenceEqual(current_hard_coded_hash))
 				{
 					return false;
@@ -131,7 +132,7 @@ namespace kaspersky_crackme2016_keygen
 		{
 			string email = textBoxEmail.Text;
 			string pass = textBoxPass.Text;
-			if (pass.Length < 32 || !System.Text.RegularExpressions.Regex.IsMatch(pass, @"\A\b[0-9a-fA-F]+\b\Z"))
+			if (pass.Length < 32 || !Regex.IsMatch(pass, @"\A\b[0-9a-fA-F]+\b\Z"))
 			{
 				MessageBox.Show("пароль должен представлять из себя 32 символную hex-строку (0..9 , a..f , A..F каждый)");
 				return;
@@ -142,37 +143,51 @@ namespace kaspersky_crackme2016_keygen
 
 		void BrutePassword( )
 		{
-			byte[] hardcoded_hash_as_byte_array = StringToByteArray(hardcoded_hashes[0]);
+			List<byte> xorEncryptionResult = new List<byte>();
 			int timestamp = 0;
-			for (int i=0;i<0xffffff;i++)
+			int totalHashCount = 0xffffff;
+			for (int hackingHashIndex = 0; hackingHashIndex < 5; hackingHashIndex++)
 			{
-				
-				if (timestamp == 0 || Environment.TickCount - timestamp >= 1000)
+				byte[] hardcodedHashAsByteArray = StringToByteArray(HardcodedHashes[hackingHashIndex]);
+
+				for (int checkingHashIndex = 0; checkingHashIndex < totalHashCount; checkingHashIndex++)
 				{
-					timestamp = Environment.TickCount;
-					//label3.Text = i.ToString();
+					if (timestamp == 0 || Environment.TickCount - timestamp >= 500)
+					{
+						timestamp = Environment.TickCount;
+						this.BeginInvoke((MethodInvoker)(() =>
+						{
+							labelCheckedHashes.Text = "Хешей проверено: " + checkingHashIndex.ToString() + " / " + totalHashCount.ToString();
+							progressBar1.Value = (int)((float)checkingHashIndex / (float)totalHashCount * (float)100.0f);
+						}));
+					}
+					byte[] threeBytesBuffer = BitConverter.GetBytes(checkingHashIndex);
+					byte[] threeBytesBufferShort = threeBytesBuffer.Take(3).ToArray();
+					byte[] current_hash = md5.ComputeHash(threeBytesBufferShort);
 
-					label3.BeginInvoke((MethodInvoker)(() => label3.Text = i.ToString()));
-					progressBar1.BeginInvoke((MethodInvoker)(() => progressBar1.Value = (int)((float)(i / 0xffffff) * 10)));
+					if (current_hash.SequenceEqual(hardcodedHashAsByteArray))
+					{
+						xorEncryptionResult.AddRange(threeBytesBufferShort);
+						break;
+					}
 				}
-
-				byte[] three_bytes_buffer = BitConverter.GetBytes(i);
-				byte[] three_bytes_buffer_short =three_bytes_buffer.Take(3).ToArray();
-				byte[] current_hash = md5.ComputeHash(three_bytes_buffer_short);
-				
-
-				if (current_hash.SequenceEqual(hardcoded_hash_as_byte_array))
+				this.BeginInvoke((MethodInvoker)(() =>
 				{
-					MessageBox.Show("found! value:" + i);
-				}
-				//Application.DoEvents();
+					labelHackingHashNumber.Text = "Взламываю хеш #"+ hackingHashIndex;
+					progressBar2.Value += 25;
+				}));
+
 			}
 		}
 
-		private void buttonGeneratePass_Click(object sender, EventArgs e)
+
+
+		private async void buttonStartBrutePasss_Click(object sender, EventArgs e)
 		{
-			Task.Run(() => BrutePassword());
-			//BrutePassword();
+			
+			await Task.Factory.StartNew(
+											 () => BrutePassword(),
+											 TaskCreationOptions.LongRunning);
 		}
 	}
 }

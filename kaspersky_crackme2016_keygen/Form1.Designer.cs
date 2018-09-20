@@ -28,25 +28,27 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.buttonGeneratePass = new System.Windows.Forms.Button();
+			this.buttonStartBrutePass = new System.Windows.Forms.Button();
 			this.textBoxEmail = new System.Windows.Forms.TextBox();
 			this.textBoxPass = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.buttonValidateCredentials = new System.Windows.Forms.Button();
 			this.progressBar1 = new System.Windows.Forms.ProgressBar();
-			this.label3 = new System.Windows.Forms.Label();
+			this.labelCheckedHashes = new System.Windows.Forms.Label();
+			this.progressBar2 = new System.Windows.Forms.ProgressBar();
+			this.labelHackingHashNumber = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
-			// buttonGeneratePass
+			// buttonStartBrutePass
 			// 
-			this.buttonGeneratePass.Location = new System.Drawing.Point(48, 141);
-			this.buttonGeneratePass.Name = "buttonGeneratePass";
-			this.buttonGeneratePass.Size = new System.Drawing.Size(150, 23);
-			this.buttonGeneratePass.TabIndex = 0;
-			this.buttonGeneratePass.Text = "Generate password";
-			this.buttonGeneratePass.UseVisualStyleBackColor = true;
-			this.buttonGeneratePass.Click += new System.EventHandler(this.buttonGeneratePass_Click);
+			this.buttonStartBrutePass.Location = new System.Drawing.Point(48, 117);
+			this.buttonStartBrutePass.Name = "buttonStartBrutePass";
+			this.buttonStartBrutePass.Size = new System.Drawing.Size(150, 23);
+			this.buttonStartBrutePass.TabIndex = 0;
+			this.buttonStartBrutePass.Text = "Start brute password";
+			this.buttonStartBrutePass.UseVisualStyleBackColor = true;
+			this.buttonStartBrutePass.Click += new System.EventHandler(this.buttonStartBrutePasss_Click);
 			// 
 			// textBoxEmail
 			// 
@@ -84,7 +86,7 @@
 			// 
 			// buttonValidateCredentials
 			// 
-			this.buttonValidateCredentials.Location = new System.Drawing.Point(204, 141);
+			this.buttonValidateCredentials.Location = new System.Drawing.Point(204, 117);
 			this.buttonValidateCredentials.Name = "buttonValidateCredentials";
 			this.buttonValidateCredentials.Size = new System.Drawing.Size(111, 23);
 			this.buttonValidateCredentials.TabIndex = 5;
@@ -94,33 +96,51 @@
 			// 
 			// progressBar1
 			// 
-			this.progressBar1.Location = new System.Drawing.Point(48, 196);
+			this.progressBar1.Location = new System.Drawing.Point(65, 192);
 			this.progressBar1.Name = "progressBar1";
 			this.progressBar1.Size = new System.Drawing.Size(267, 23);
 			this.progressBar1.TabIndex = 6;
 			// 
-			// label3
+			// labelCheckedHashes
 			// 
-			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(12, 175);
-			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(35, 13);
-			this.label3.TabIndex = 7;
-			this.label3.Text = "label3";
+			this.labelCheckedHashes.AutoSize = true;
+			this.labelCheckedHashes.Location = new System.Drawing.Point(62, 158);
+			this.labelCheckedHashes.Name = "labelCheckedHashes";
+			this.labelCheckedHashes.Size = new System.Drawing.Size(126, 13);
+			this.labelCheckedHashes.TabIndex = 7;
+			this.labelCheckedHashes.Text = "Хешей проверено: 0 / 0";
+			// 
+			// progressBar2
+			// 
+			this.progressBar2.Location = new System.Drawing.Point(65, 221);
+			this.progressBar2.Name = "progressBar2";
+			this.progressBar2.Size = new System.Drawing.Size(267, 23);
+			this.progressBar2.TabIndex = 8;
+			// 
+			// labelHackingHashNumber
+			// 
+			this.labelHackingHashNumber.AutoSize = true;
+			this.labelHackingHashNumber.Location = new System.Drawing.Point(62, 171);
+			this.labelHackingHashNumber.Name = "labelHackingHashNumber";
+			this.labelHackingHashNumber.Size = new System.Drawing.Size(106, 13);
+			this.labelHackingHashNumber.TabIndex = 9;
+			this.labelHackingHashNumber.Text = "Взламываю хеш #0";
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(378, 231);
-			this.Controls.Add(this.label3);
+			this.ClientSize = new System.Drawing.Size(396, 314);
+			this.Controls.Add(this.labelHackingHashNumber);
+			this.Controls.Add(this.progressBar2);
+			this.Controls.Add(this.labelCheckedHashes);
 			this.Controls.Add(this.progressBar1);
 			this.Controls.Add(this.buttonValidateCredentials);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.textBoxPass);
 			this.Controls.Add(this.textBoxEmail);
-			this.Controls.Add(this.buttonGeneratePass);
+			this.Controls.Add(this.buttonStartBrutePass);
 			this.Name = "Form1";
 			this.Text = "Kaspersky crackme2016 keygen by TheCooler";
 			this.ResumeLayout(false);
@@ -130,14 +150,16 @@
 
 		#endregion
 
-		private System.Windows.Forms.Button buttonGeneratePass;
+		private System.Windows.Forms.Button buttonStartBrutePass;
 		private System.Windows.Forms.TextBox textBoxEmail;
 		private System.Windows.Forms.TextBox textBoxPass;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button buttonValidateCredentials;
 		private System.Windows.Forms.ProgressBar progressBar1;
-		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.Label labelCheckedHashes;
+		private System.Windows.Forms.ProgressBar progressBar2;
+		private System.Windows.Forms.Label labelHackingHashNumber;
 	}
 }
 
