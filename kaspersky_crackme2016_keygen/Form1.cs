@@ -18,15 +18,26 @@ namespace kaspersky_crackme2016_keygen
 		public Form1()
 		{
 			InitializeComponent();
+
 		}
 
 
-		byte[] kaspersky_algo(string pass)
+		byte[] ReverseAlgoOptimized(byte[] data)
 		{
-			uint block1 = BitConverter.ToUInt32(StringToByteArray(pass.Substring(0, 8)), 0);
-			uint block2 = BitConverter.ToUInt32(StringToByteArray(pass.Substring(8, 8)), 0);
-			uint block3 = BitConverter.ToUInt32(StringToByteArray(pass.Substring(16, 8)), 0);
-			uint block4 = BitConverter.ToUInt32(StringToByteArray(pass.Substring(24, 8)), 0);
+			if (data.Length != 16)
+				return null;
+			for (int i = 0; i < data.Length; i += 4)
+				Array.Reverse(data, i, 4);
+			return data;
+		}
+
+		byte[] ReverseAlgo(string pass)
+		{
+			byte[] passAsHexBytes = StringToByteArray(pass.Substring(0, 32));
+			uint block1 = BitConverter.ToUInt32(passAsHexBytes, 0);
+			uint block2 = BitConverter.ToUInt32(passAsHexBytes, 4);
+			uint block3 = BitConverter.ToUInt32(passAsHexBytes, 8);
+			uint block4 = BitConverter.ToUInt32(passAsHexBytes, 12);
 
 
 			uint v5 = block1 & 0xFF0000;     // //algo start for pass
@@ -35,9 +46,9 @@ namespace kaspersky_crackme2016_keygen
 			byte[] block1_byte_array = BitConverter.GetBytes(((block1 & 0xFF00 | v7) << 8) | v6) ;// 1 block assigned
 
 			uint v8 = block2 & 0xFF0000;
-			uint v9 = (((block2) >> 16) | v8) >> 8;
+			uint v9 = ((block2 >> 16) | v8) >> 8;
 			uint v10 = block2 << 16;
-			byte[] block2_byte_array = BitConverter.GetBytes((block2 & 0xFF00 | v10 << 8) | v9);// 2 block assigned
+			byte[] block2_byte_array = BitConverter.GetBytes(((block2 & 0xFF00 | v10) << 8) | v9);// 2 block assigned
 			uint v11 = block3 & 0xFF0000;
 			uint v12 = ((block3 >> 16) | v11) >> 8;
 			uint v13 = block3 << 16;
@@ -72,6 +83,16 @@ namespace kaspersky_crackme2016_keygen
 							 .ToArray();
 		}
 
+		public static string ByteArrayToString(byte[] arr)
+		{
+			string result = "";
+			foreach(byte b in arr)
+			{
+				result += b.ToString("X2");
+			}
+			return result;
+		}
+
 
 		string[] HardcodedHashes = {
 				"CD64341F68CEDE586C9693EDC505F378",
@@ -83,48 +104,50 @@ namespace kaspersky_crackme2016_keygen
 		MD5 md5 = MD5.Create();
 		bool CrackmeValidate(string email,string password)
 		{
-			
-
-
-			byte[] kas_algo_result = kaspersky_algo(password);
-			byte[] login_md5 = md5.ComputeHash(Encoding.UTF8.GetBytes(email));
-			byte[] xor_encryption_result = new byte[16];
-			for (uint i = 0; i < 16; i++)
+			byte[] reversedPass = ReverseAlgoOptimized(StringToByteArray( password));
+			byte[] emailMd5 = md5.ComputeHash(Encoding.UTF8.GetBytes(email));
+			byte[] revPassXorEmailMd5 = new byte[16];
+			for (uint i = 0; i < 16; i+=4)
 			{
-				xor_encryption_result[i] = (byte)(kas_algo_result[i] ^ login_md5[i]);
+				revPassXorEmailMd5[i] = (byte)(reversedPass[i] ^ emailMd5[i]);
+				revPassXorEmailMd5[i+1] = (byte)(reversedPass[i+1] ^ emailMd5[i + 1]);
+				revPassXorEmailMd5[i + 2] = (byte)(reversedPass[i + 2] ^ emailMd5[i + 2]);
+				revPassXorEmailMd5[i + 3] = (byte)(reversedPass[i + 3] ^ emailMd5[i + 3]);
 			}
-
 
 			for (int i = 0; i < 5; i++)
 			{
-				byte[] three_byte_hash = md5.ComputeHash(xor_encryption_result, i * 3, 3);
-				byte[] current_hard_coded_hash = StringToByteArray(HardcodedHashes[i]);
-				if (!three_byte_hash.SequenceEqual(current_hard_coded_hash))
+				byte[] revPassXorEmailMd5_Md5 = md5.ComputeHash(buffer: revPassXorEmailMd5, offset: i * 3, count:3);
+				byte[] currentHardcodedHash = StringToByteArray(HardcodedHashes[i]);
+				if (!revPassXorEmailMd5_Md5.SequenceEqual(currentHardcodedHash))
 				{
 					return false;
 				}
 			}
 
-
 			byte chunk1 = 0;
 			byte chunk2 = 0;
 			byte chunk3 = 0;
 			byte chunk4 = 0;
-			byte it = 0;
-			byte it2 = 0;
+			//byte it = 0;
+			//byte it2 = 0;
 
-			for (int i=0;i< login_md5.Length;i+=4)
+			for (int i=0;i< emailMd5.Length;i+=4)
 			{
-				chunk1 += login_md5[i];
-				chunk2 += login_md5[i + 3];
-				chunk3 = (byte)(login_md5[i + 1] + it);
-				chunk4 = (byte)(login_md5[i + 2] + it2);
-				it2 = chunk4;
-				it = chunk3;
+				chunk1 += emailMd5[i];
+				chunk2 += emailMd5[i + 3];
+				chunk3 += emailMd5[i + 1];
+				chunk4 += emailMd5[i + 2];
+
+
+				//chunk3 = (byte)(loginMd5[i + 1] + it);
+				//chunk4 = (byte)(loginMd5[i + 2] + it2);
+				//it2 = chunk4;
+				//it = chunk3;
 
 			}
 
-			return chunk1 + chunk2 + chunk3 + chunk4 == kas_algo_result[15];
+			return chunk1 + chunk2 + chunk3 + chunk4 == revPassXorEmailMd5[15];
 
 		}
 
@@ -141,13 +164,23 @@ namespace kaspersky_crackme2016_keygen
 
 		}
 
-		void BrutePassword( )
+		List<byte> GlobalControlHash = null;
+
+
+		List<byte> BruteControlHash()
 		{
-			List<byte> xorEncryptionResult = new List<byte>();
+			List<byte> controlHash = new List<byte>();
+
 			int timestamp = 0;
 			int totalHashCount = 0xffffff;
-			for (int hackingHashIndex = 0; hackingHashIndex < 5; hackingHashIndex++)
+			int controlHashNeededLen = 15;
+			for (int hackingHashIndex = 0; hackingHashIndex < HardcodedHashes.Length; hackingHashIndex++)
 			{
+				this.BeginInvoke((MethodInvoker)(() =>
+				{
+					labelHackingHashNumber.Text = "Взламываю хеш #" + (hackingHashIndex + 1) + " / " + HardcodedHashes.Length + "...";
+				}));
+
 				byte[] hardcodedHashAsByteArray = StringToByteArray(HardcodedHashes[hackingHashIndex]);
 
 				for (int checkingHashIndex = 0; checkingHashIndex < totalHashCount; checkingHashIndex++)
@@ -161,33 +194,122 @@ namespace kaspersky_crackme2016_keygen
 							progressBar1.Value = (int)((float)checkingHashIndex / (float)totalHashCount * (float)100.0f);
 						}));
 					}
-					byte[] threeBytesBuffer = BitConverter.GetBytes(checkingHashIndex);
-					byte[] threeBytesBufferShort = threeBytesBuffer.Take(3).ToArray();
-					byte[] current_hash = md5.ComputeHash(threeBytesBufferShort);
+					byte[] checkingHashIndexAsByteArray = BitConverter.GetBytes(checkingHashIndex).Take(3).ToArray();
+					byte[] checkingHashIndexMd5 = md5.ComputeHash(checkingHashIndexAsByteArray);
 
-					if (current_hash.SequenceEqual(hardcodedHashAsByteArray))
+					if (checkingHashIndexMd5.SequenceEqual(hardcodedHashAsByteArray))
 					{
-						xorEncryptionResult.AddRange(threeBytesBufferShort);
+						controlHash.AddRange(checkingHashIndexAsByteArray);
+
+						this.BeginInvoke((MethodInvoker)(() =>
+						{
+
+							labelControlHash.Text = "Контрольный хеш: ";
+
+							for (int i = 0; i < controlHash.Count; i++)
+							{
+								labelControlHash.Text += controlHash[i].ToString("X");
+							}
+
+							for (int i = 0; i < controlHashNeededLen - controlHash.Count; i++)
+							{
+								labelControlHash.Text += "??";
+							}
+
+							progressBar2.PerformStep();
+						}));
 						break;
 					}
 				}
-				this.BeginInvoke((MethodInvoker)(() =>
-				{
-					labelHackingHashNumber.Text = "Взламываю хеш #"+ hackingHashIndex;
-					progressBar2.Value += 25;
-				}));
-
 			}
+			return controlHash;
+		}
+
+		void RestorePassword(string email, List<byte> controlHash)
+		{
+			
+
+			byte[] revPassXorEmailMd5 = new byte[16];
+			byte[] emailMd5 = md5.ComputeHash(Encoding.UTF8.GetBytes(email));
+
+			for (int i = 0; i < 15; i++)
+			{
+				revPassXorEmailMd5[i] = (byte)(controlHash[i] ^ emailMd5[i]);
+			}
+
+			byte chunk1 = 0;
+			byte chunk2 = 0;
+			byte chunk3 = 0;
+			byte chunk4 = 0;
+			for (int i = 0; i < emailMd5.Length; i += 4)
+			{
+				chunk1 += emailMd5[i];
+				chunk2 += emailMd5[i + 3];
+				chunk3 += emailMd5[i + 1];
+				chunk4 += emailMd5[i + 2];
+			}
+			revPassXorEmailMd5[15] = (byte)(chunk1 + chunk2 + chunk3 + chunk4);
+			revPassXorEmailMd5[15] ^= emailMd5[15];
+
+			
+
+			this.BeginInvoke((MethodInvoker)(() =>
+			{
+				textBoxPass.Text = ByteArrayToString(ReverseAlgoOptimized(revPassXorEmailMd5));
+				progressBar1.Value = progressBar1.Maximum;
+				progressBar2.Value = progressBar2.Maximum;
+				MessageBox.Show("Пароль восстановлен и помещен в текстовое поля для пароля.","Успех",MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}));
+
+
 		}
 
 
 
-		private async void buttonStartBrutePasss_Click(object sender, EventArgs e)
+		private void Form1_Load(object sender, EventArgs e)
+		{
+			string setting = Properties.Settings.Default["CrackMeControlHash"].ToString();
+			if (string.IsNullOrEmpty(setting))
+				return;
+
+			GlobalControlHash = new List<byte>( Convert.FromBase64String(setting));
+			buttonRestorePassword.Enabled = true;
+			buttonValidateCredentials.Enabled = true;
+			labelControlHash.Text = "Контрольный хеш: " + ByteArrayToString(GlobalControlHash.ToArray());
+			labelInfo.Text = "Контрольный хеш восстановлен с диска.";
+		}
+
+
+		void SaveControlHash(List<byte> controlHash)
 		{
 			
+			Properties.Settings.Default["CrackMeControlHash"] = Convert.ToBase64String(controlHash.ToArray());
+			Properties.Settings.Default.Save();
+		}
+
+		private async void buttonBruteControlHash_Click(object sender, EventArgs e)
+		{
 			await Task.Factory.StartNew(
-											 () => BrutePassword(),
+											 () =>
+											 {
+												 GlobalControlHash = BruteControlHash();
+												 this.BeginInvoke((MethodInvoker)(() =>
+												 {
+													
+													buttonRestorePassword.Enabled = true;
+													buttonValidateCredentials.Enabled = true;
+													DialogResult result = MessageBox.Show("Контрольный хеш сбручен. Теперь можно восстановить пароль, а так же проверить его аутентичность по алгоритму CrackMe! Сохранить контрольный хеш на диск, что бы в будущем программа сама подгружала его?", "Успех", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+													 if (result == DialogResult.Yes)
+														 SaveControlHash(GlobalControlHash);
+												 }));
+											 },
 											 TaskCreationOptions.LongRunning);
+		}
+
+		private void buttonRestorePassword_Click(object sender, EventArgs e)
+		{
+			string email = textBoxEmail.Text;
+			  RestorePassword(email,GlobalControlHash);
 		}
 	}
 }
