@@ -68,7 +68,6 @@
 			this.textBoxPass.Name = "textBoxPass";
 			this.textBoxPass.Size = new System.Drawing.Size(276, 20);
 			this.textBoxPass.TabIndex = 2;
-			this.textBoxPass.Text = "11111111111111111111111111111111";
 			// 
 			// label1
 			// 
